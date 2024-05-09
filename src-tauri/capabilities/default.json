@@ -12,6 +12,7 @@
     "resources:default",
     "menu:default",
     "tray:default",
+    "fs:default",
     "shell:allow-open"
   ]
 }

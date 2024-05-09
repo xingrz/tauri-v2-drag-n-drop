@@ -1,22 +1,25 @@
-import { invoke } from "@tauri-apps/api/core";
+import { listen, TauriEvent } from "@tauri-apps/api/event";
+import { stat } from "@tauri-apps/plugin-fs";
 
-let greetInputEl: HTMLInputElement | null;
 let greetMsgEl: HTMLElement | null;
 
-async function greet() {
-  if (greetMsgEl && greetInputEl) {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    greetMsgEl.textContent = await invoke("greet", {
-      name: greetInputEl.value,
-    });
-  }
-}
-
 window.addEventListener("DOMContentLoaded", () => {
-  greetInputEl = document.querySelector("#greet-input");
   greetMsgEl = document.querySelector("#greet-msg");
-  document.querySelector("#greet-form")?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    greet();
+
+  listen<{ paths: string[] }>(TauriEvent.DRAG, (event) => {
+    console.log(event);
+    greetMsgEl!.innerText = "DRAG: " + event.payload.paths;
+  });
+
+  listen<{ paths: string[] }>(TauriEvent.DROP, async (event) => {
+    console.log(event);
+    greetMsgEl!.innerText = "DROP: " + event.payload.paths;
+    const stats = await stat(event.payload.paths[0]);
+    greetMsgEl!.innerText += "\n(size: " + stats.size + ")";
+  });
+
+  listen<{ paths: string[] }>(TauriEvent.DROP_CANCELLED, (event) => {
+    console.log(event);
+    greetMsgEl!.innerText = "DROP_CANCELLED";
   });
 });
